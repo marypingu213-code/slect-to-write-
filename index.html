@@ -1,0 +1,227 @@
+import React, { useState, useEffect } from 'react';
+import { Sparkles, ArrowRight, ArrowLeft, Copy, CheckCircle2, RotateCcw, Pencil, Eye, BookOpen } from 'lucide-react';
+
+const App = () => {
+  const [step, setStep] = useState(0);
+  const [selections, setSelections] = useState({
+    ability: '',
+    reason: '',
+    action: '',
+    realWorld: ''
+  });
+  const [isCopied, setIsCopied] = useState(false);
+
+  // 選項資料庫
+  const options = [
+    {
+      title: "第一步：選擇你的超能力",
+      key: "ability",
+      items: [
+        { id: "飛翔", label: "自由飛翔", icon: "🕊️", desc: "像鳥兒一樣在天空穿梭" },
+        { id: "隱身", label: "隱身術", icon: "👻", desc: "讓大家都看不見我" },
+        { id: "時間停止", label: "控制時間", icon: "⏳", desc: "讓時間停在最開心的時刻" },
+        { id: "與動物說話", label: "動物語言", icon: "🐱", desc: "聽懂小貓小狗在說什麼" },
+        { id: "傳送門", label: "瞬間移動", icon: "🚪", desc: "一秒鐘就到達目的地" },
+        { id: "力大無窮", label: "超級力量", icon: "💪", desc: "搬起比大象還重的東西" }
+      ]
+    },
+    {
+      title: "第二步：為什麼想要這個能力？",
+      key: "reason",
+      items: [
+        { id: "趕走遲到", label: "不再遲到", icon: "⏰", desc: "解決每天早上趕車的煩惱" },
+        { id: "躲避尷尬", label: "安靜觀察", icon: "🤫", desc: "害羞時可以躲起來" },
+        { id: "了解寵物", label: "幫助寵物", icon: "🐶", desc: "想知道狗狗為什麼一直叫" },
+        { id: "不再辛苦", label: "減輕負擔", icon: "🎒", desc: "書包太重了，搬不動" },
+        { id: "去冒險", label: "環遊世界", icon: "🌍", desc: "去沒看過的地方看看" }
+      ]
+    },
+    {
+      title: "第三步：你想用它做什麼好事？",
+      key: "action",
+      items: [
+        { id: "救人", label: "拯救路人", icon: "🚑", desc: "在火災或地震中救出大家" },
+        { id: "環保", label: "清理垃圾", icon: "♻️", desc: "用超能力讓地球變乾淨" },
+        { id: "陪伴", label: "陪伴老人", icon: "👴", desc: "讓孤單的人感到快樂" },
+        { id: "找東西", label: "尋找失物", icon: "🔍", desc: "幫同學找回弄丟的東西" },
+        { id: "打敗壞人", label: "保護弱小", icon: "🦸", desc: "不讓惡霸欺負小同學" }
+      ]
+    },
+    {
+      title: "第四步：現在的我可以怎麼做？",
+      key: "realWorld",
+      items: [
+        { id: "運動", label: "鍛鍊身體", icon: "🏃", desc: "讓自己變得強壯有力" },
+        { id: "閱讀", label: "充實大腦", icon: "📚", desc: "用知識當作我的超能力" },
+        { id: "善良", label: "日行一善", icon: "❤️", desc: "就算沒法力也能幫助人" },
+        { id: "專心", label: "認真學習", icon: "✍️", desc: "把一件事情做到最好" }
+      ]
+    }
+  ];
+
+  const handleSelect = (val) => {
+    setSelections({ ...selections, [options[step].key]: val });
+    if (step < options.length - 1) {
+      setTimeout(() => setStep(step + 1), 300);
+    } else {
+      setStep(4); // 前往結果頁
+    }
+  };
+
+  const generateEssay = () => {
+    const { ability, reason, action, realWorld } = selections;
+    return `我最想擁有的超能力是「${ability}」。
+
+如果我擁有這個能力，那該有多好！因為在生活中，我常常覺得「${reason}」這件事讓我很困擾，如果有這項超能力，我就可以輕鬆解決這些問題，生活也會變得更有趣。
+
+我不僅想讓自己方便，更想用這份力量去幫助別人。例如，我想嘗試「${action}」，看見別人臉上的笑容，我也會覺得非常有成就感，覺得自己像個真正的英雄。
+
+雖然我現在還沒有真正的超能力，但我相信，只要我願意「${realWorld}」，我也能成為一個優秀的人。我想，一顆願意助人的心，就是世界上最強大的超能力！`;
+  };
+
+  const copyToClipboard = () => {
+    const text = generateEssay();
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    document.body.appendChild(textArea);
+    textArea.select();
+    try {
+      document.execCommand('copy');
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (err) {
+      console.error('無法複製', err);
+    }
+    document.body.removeChild(textArea);
+  };
+
+  const reset = () => {
+    setStep(0);
+    setSelections({ ability: '', reason: '', action: '', realWorld: '' });
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 p-4 md:p-8 font-sans text-slate-900">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <header className="mb-8 text-center">
+          <div className="inline-flex items-center justify-center p-3 bg-blue-100 rounded-2xl mb-4">
+            <Sparkles className="w-8 h-8 text-blue-600" />
+          </div>
+          <h1 className="text-3xl font-bold text-slate-800 mb-2">作文小幫手</h1>
+          <p className="text-slate-500">題目：我最想擁有的超能力</p>
+        </header>
+
+        {/* Progress Bar */}
+        <div className="mb-8 px-4">
+          <div className="flex justify-between mb-2">
+            {[0, 1, 2, 3, 4].map((i) => (
+              <div 
+                key={i} 
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
+                  step === i ? 'bg-blue-600 text-white' : 
+                  step > i ? 'bg-green-500 text-white' : 'bg-slate-200 text-slate-500'
+                }`}
+              >
+                {step > i ? <CheckCircle2 size={16} /> : i + 1}
+              </div>
+            ))}
+          </div>
+          <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-blue-600 transition-all duration-500" 
+              style={{ width: `${(step / 4) * 100}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Content Area */}
+        <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 p-6 md:p-8 min-h-[400px] flex flex-col">
+          {step < 4 ? (
+            <>
+              <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                <Pencil className="text-blue-500" /> {options[step].title}
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow">
+                {options[step].items.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => handleSelect(item.id)}
+                    className={`group p-4 rounded-2xl border-2 text-left transition-all hover:shadow-lg active:scale-95 ${
+                      selections[options[step].key] === item.id 
+                        ? 'border-blue-500 bg-blue-50 ring-4 ring-blue-50' 
+                        : 'border-slate-100 hover:border-blue-200 bg-white'
+                    }`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <span className="text-4xl group-hover:scale-110 transition-transform">{item.icon}</span>
+                      <div>
+                        <div className="font-bold text-lg text-slate-800">{item.label}</div>
+                        <div className="text-sm text-slate-500">{item.desc}</div>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+              <div className="mt-8 flex justify-between">
+                <button
+                  disabled={step === 0}
+                  onClick={() => setStep(step - 1)}
+                  className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${
+                    step === 0 ? 'text-slate-300 cursor-not-allowed' : 'text-slate-600 hover:bg-slate-100'
+                  }`}
+                >
+                  <ArrowLeft size={18} /> 上一步
+                </button>
+              </div>
+            </>
+          ) : (
+            /* Result View */
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                  <BookOpen className="text-green-500" /> 你的作文草稿生成了！
+                </h2>
+                <button 
+                  onClick={reset}
+                  className="p-2 text-slate-400 hover:text-blue-500 transition-colors"
+                  title="重新開始"
+                >
+                  <RotateCcw size={20} />
+                </button>
+              </div>
+              
+              <div className="bg-slate-50 border-2 border-slate-100 rounded-2xl p-6 mb-6 relative group">
+                <pre className="whitespace-pre-wrap font-serif text-lg leading-relaxed text-slate-700">
+                  {generateEssay()}
+                </pre>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-4">
+                <button
+                  onClick={copyToClipboard}
+                  className={`flex-1 flex items-center justify-center gap-2 px-8 py-4 rounded-2xl font-bold transition-all shadow-lg active:scale-95 ${
+                    isCopied ? 'bg-green-500 text-white' : 'bg-blue-600 text-white hover:bg-blue-700'
+                  }`}
+                >
+                  {isCopied ? <><CheckCircle2 size={20} /> 已複製到剪貼簿</> : <><Copy size={20} /> 複製文章內容</>}
+                </button>
+                <button
+                  onClick={reset}
+                  className="px-8 py-4 rounded-2xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-all"
+                >
+                  重新選擇
+                </button>
+              </div>
+              <p className="mt-6 text-center text-sm text-slate-400 italic">
+                小提示：複製內容後，可以根據自己的想法再增加一些細節喔！
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default App;
