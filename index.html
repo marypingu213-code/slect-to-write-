@@ -246,6 +246,7 @@
         let isRecording = false;
         let isRefining = false;
         let recognition = null;
+        let textBeforeCurrentRecording = ''; // 記錄錄音開始前的文字內容
 
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -266,7 +267,9 @@
                 }
                 const myOutput = document.getElementById('my-speech-output');
                 if (myOutput) {
-                    myOutput.value = finalTranscript || interimTranscript;
+                    // 將新產生的文字接在原本的文字後面
+                    // 如果原本最後一個字不是空白或標點，可以考慮加個逗號或空白，這裡採直接銜接
+                    myOutput.value = textBeforeCurrentRecording + (finalTranscript || interimTranscript);
                 }
             };
 
@@ -461,6 +464,11 @@
 
         function startRecording() {
             isRecording = true;
+            
+            // 關鍵修改：錄音前先存下目前的文字內容，避免被新錄音覆蓋
+            const myOutput = document.getElementById('my-speech-output');
+            textBeforeCurrentRecording = myOutput.value;
+            
             recognition.start();
             const btn = document.getElementById('mic-btn');
             btn.classList.add('bg-red-500', 'recording-pulse');
