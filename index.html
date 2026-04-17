@@ -12,10 +12,8 @@ import {
 } from 'lucide-react';
 
 /**
- * 互動式作文小幫手 (Interactive Writing Assistant)
- * * 專為思考與書寫能力較弱的學生設計。
- * 透過結構化的選擇流程，引導學生完成一篇邏輯通順的作文草稿。
- * * 使用技術：React, Tailwind CSS, Lucide Icons
+ * 互動式作文小幫手 (修正版)
+ * 解決了圖片中 JSX 結構不完整與變數未包裹標籤的問題。
  */
 
 export default function App() {
@@ -32,19 +30,19 @@ export default function App() {
   // --- 選項資料庫 ---
   const options = [
     {
-      title: "第一階段：選擇超能力",
+      title: "第一階段：選擇你的超能力",
       key: "ability",
       items: [
-        { id: "飛翔", label: "自由飛翔", icon: "🕊️", desc: "想像鳥兒一樣在雲端穿梭" },
+        { id: "飛翔", label: "自由飛翔", icon: "🕊️", desc: "像鳥兒一樣在雲端穿梭" },
         { id: "隱身", label: "隱身術", icon: "👻", desc: "安靜地觀察，不被發現" },
         { id: "控制時間", label: "控制時間", icon: "⏳", desc: "讓美好的瞬間停下來" },
-        { id: "動物語言", label: "動物語言", icon: "🐱", desc: "聽懂流浪貓狗的心聲" },
+        { id: "與動物說話", label: "動物語言", icon: "🐱", desc: "聽懂流浪貓狗的心聲" },
         { id: "瞬間移動", label: "傳送門", icon: "🚪", desc: "一眨眼就到想去的地方" },
         { id: "超級力量", label: "力大無窮", icon: "💪", desc: "幫助大家搬動重物" }
       ]
     },
     {
-      title: "第二階段：想要的原因",
+      title: "第二階段：為什麼想要這個能力？",
       key: "reason",
       items: [
         { id: "解決遲到", label: "不再遲到", icon: "⏰", desc: "解決每天趕時間的煩惱" },
@@ -55,7 +53,7 @@ export default function App() {
       ]
     },
     {
-      title: "第三階段：想做的好事",
+      title: "第三階段：你想用它做什麼好事？",
       key: "action",
       items: [
         { id: "英雄救人", label: "拯救困難", icon: "🚑", desc: "在危急時刻保護大家" },
@@ -66,24 +64,24 @@ export default function App() {
       ]
     },
     {
-      title: "第四階段：現實的努力",
+      title: "第四階段：現實中的小行動",
       key: "realWorld",
       items: [
         { id: "運動鍛鍊", label: "鍛鍊身體", icon: "🏃", desc: "讓自己變得強壯健康" },
         { id: "閱讀學習", label: "充實知識", icon: "📚", desc: "用智慧解決未來的難題" },
         { id: "日行一善", label: "幫助他人", icon: "❤️", desc: "就算沒法力也能愛別人" },
-        { id: "專注專注", label: "認真學習", icon: "✍️", desc: "把當下的事情做到最好" }
+        { id: "專注學習", label: "認真學習", icon: "✍️", desc: "把當下的事情做到最好" }
       ]
     }
   ];
 
-  // --- 處理函式 ---
+  // --- 邏輯處理 ---
   const handleSelect = (val) => {
     setSelections(prev => ({ ...prev, [options[step].key]: val }));
     if (step < options.length - 1) {
       setTimeout(() => setStep(step + 1), 300);
     } else {
-      setStep(4); // 進入結果頁
+      setStep(4);
     }
   };
 
@@ -109,7 +107,7 @@ export default function App() {
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), 2000);
     } catch (err) {
-      console.error('Copy failed', err);
+      console.error('複製失敗', err);
     }
     document.body.removeChild(textArea);
   };
@@ -122,19 +120,19 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-12 font-sans text-slate-900">
       <div className="max-w-4xl mx-auto">
-        {/* Header */}
+        {/* 標題區 */}
         <header className="mb-12 text-center">
           <div className="inline-flex items-center justify-center p-4 bg-white text-blue-600 rounded-2xl mb-4 shadow-sm border border-slate-100">
             <Sparkles className="w-10 h-10" />
           </div>
           <h1 className="text-4xl font-black text-slate-800 mb-2">作文小幫手</h1>
-          <p className="text-slate-500 text-lg">題目：我最想擁有的超能力</p>
+          <p className="text-slate-500 text-lg font-medium">題目：我最想擁有的超能力</p>
         </header>
 
-        {/* Progress Bar */}
+        {/* 進度條 */}
         <div className="mb-12 px-2">
           <div className="flex justify-between mb-4 relative">
-            <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-slate-200 -translate-y-1/2 -z-10"></div>
+            <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-slate-200 -translate-y-1/2 -z-10 mx-4"></div>
             {[0, 1, 2, 3, 4].map((i) => (
               <div 
                 key={i} 
@@ -149,10 +147,10 @@ export default function App() {
           </div>
         </div>
 
-        {/* Main Content */}
-        <div className="bg-white rounded-[2rem] shadow-xl shadow-slate-200/50 p-6 md:p-10 border border-white">
+        {/* 主要互動區 */}
+        <div className="bg-white rounded-[2rem] shadow-xl shadow-slate-200/50 p-6 md:p-10 border border-white min-h-[500px] flex flex-col">
           {step < 4 ? (
-            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 flex-grow">
               <div className="flex items-center gap-3 mb-8">
                 <div className="p-2 bg-blue-100 rounded-xl text-blue-600">
                   <Pencil size={24} />
@@ -167,7 +165,7 @@ export default function App() {
                     onClick={() => handleSelect(item.id)}
                     className={`group p-6 rounded-2xl border-2 text-left transition-all hover:border-blue-300 active:scale-95 ${
                       selections[options[step].key] === item.id 
-                        ? 'border-blue-600 bg-blue-50/50 ring-4 ring-blue-50' 
+                        ? 'border-blue-600 bg-blue-50/50 ring-4 ring-blue-50 shadow-sm' 
                         : 'border-slate-100 hover:bg-slate-50'
                     }`}
                   >
@@ -184,12 +182,12 @@ export default function App() {
                 ))}
               </div>
 
-              <div className="mt-10 flex justify-between">
+              <div className="mt-12">
                 <button
                   disabled={step === 0}
                   onClick={() => setStep(step - 1)}
                   className={`flex items-center gap-2 px-6 py-2 rounded-xl font-bold transition-all ${
-                    step === 0 ? 'text-slate-200 cursor-not-allowed' : 'text-slate-500 hover:bg-slate-100'
+                    step === 0 ? 'text-slate-200 cursor-not-allowed opacity-50' : 'text-slate-500 hover:bg-slate-100 active:bg-slate-200'
                   }`}
                 >
                   <ArrowLeft size={18} /> 上一步
@@ -197,25 +195,25 @@ export default function App() {
               </div>
             </div>
           ) : (
-            /* Result View */
+            /* 結果呈現頁面 */
             <div className="animate-in zoom-in-95 duration-500">
-              <div className="flex items-center justify-between mb-8">
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-green-100 rounded-xl text-green-600">
+                  <div className="p-2 bg-green-100 rounded-xl text-green-600 shadow-sm shadow-green-100">
                     <BookOpen size={24} />
                   </div>
                   <h2 className="text-2xl font-bold text-slate-800">你的作文初稿已完成！</h2>
                 </div>
                 <button 
                   onClick={reset}
-                  className="p-2 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-all"
+                  className="flex items-center gap-2 p-2 px-4 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-xl transition-all font-bold"
                 >
-                  <RotateCcw size={20} />
+                  <RotateCcw size={18} /> 重新開始
                 </button>
               </div>
               
-              <div className="bg-slate-50 border-2 border-slate-100 rounded-2xl p-8 mb-8">
-                <pre className="whitespace-pre-wrap font-serif text-lg leading-relaxed text-slate-700">
+              <div className="bg-slate-50 border-2 border-slate-100 rounded-3xl p-8 mb-8 shadow-inner">
+                <pre className="whitespace-pre-wrap font-serif text-xl leading-relaxed text-slate-700">
                   {generateEssay()}
                 </pre>
               </div>
@@ -223,30 +221,30 @@ export default function App() {
               <div className="flex flex-col sm:flex-row gap-4">
                 <button
                   onClick={copyToClipboard}
-                  className={`flex-1 flex items-center justify-center gap-2 px-8 py-4 rounded-2xl font-bold transition-all shadow-lg active:scale-95 ${
+                  className={`flex-1 flex items-center justify-center gap-2 px-8 py-5 rounded-2xl font-bold text-lg transition-all shadow-lg active:scale-95 ${
                     isCopied ? 'bg-green-600 text-white' : 'bg-blue-600 text-white hover:bg-blue-700'
                   }`}
                 >
-                  {isCopied ? <><CheckCircle2 size={20} /> 複製成功！</> : <><Copy size={20} /> 複製整篇文章</>}
+                  {isCopied ? <><CheckCircle2 size={24} /> 複製成功！</> : <><Copy size={24} /> 複製整篇文章</>}
                 </button>
                 <button
                   onClick={reset}
-                  className="px-8 py-4 rounded-2xl font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 transition-all"
+                  className="px-8 py-5 rounded-2xl font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 transition-all"
                 >
-                  重新填寫
+                  重選選項
                 </button>
               </div>
               
-              <div className="mt-8 flex items-center justify-center gap-2 text-slate-400">
-                <Heart size={16} className="text-red-300" />
-                <p className="text-sm font-medium">你是最棒的小作家！</p>
+              <div className="mt-10 flex items-center justify-center gap-2 text-slate-400">
+                <Heart size={16} className="text-red-300 fill-red-300" />
+                <p className="text-sm font-semibold">你是最棒的小作家！</p>
               </div>
             </div>
           )}
         </div>
 
         <footer className="mt-12 text-center text-slate-400 text-sm font-medium">
-          <p>© 2024 互動式教育工具集</p>
+          <p>© 2024 互動式教育工具集 | 讓寫作變得更簡單</p>
         </footer>
       </div>
     </div>
