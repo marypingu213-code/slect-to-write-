@@ -44,7 +44,7 @@
             }
             #print-area {
                 display: block !important;
-                writing-mode: vertical-rl; /* 直排書寫 */
+                writing-mode: vertical-rl;
                 text-orientation: mixed;
                 font-family: 'Noto Serif TC', serif;
                 font-size: 24pt;
@@ -58,7 +58,7 @@
                 white-space: pre-wrap;
             }
             @page {
-                size: A4 landscape; /* 橫向紙張 */
+                size: A4 landscape;
                 margin: 0;
             }
         }
@@ -71,8 +71,7 @@
             to { transform: rotate(360deg); }
         }
 
-        /* AI 建議彈窗樣式 */
-        .ai-modal {
+        .custom-modal {
             background: rgba(15, 23, 42, 0.6);
             backdrop-filter: blur(4px);
         }
@@ -83,7 +82,12 @@
     <!-- 列印專用的隱藏容器 -->
     <div id="print-area"></div>
 
-    <div class="min-h-screen p-4 md:p-8">
+    <div class="min-h-screen p-4 md:p-8 relative">
+        <!-- 右上方設定按鈕 -->
+        <button onclick="openSettings()" class="fixed top-4 right-4 z-40 p-3 bg-white text-slate-400 hover:text-purple-600 rounded-2xl shadow-sm border border-slate-100 transition-all hover:rotate-90 no-print">
+            <i data-lucide="settings" class="w-6 h-6"></i>
+        </button>
+
         <div class="max-w-6xl mx-auto">
             
             <!-- Header 區塊 -->
@@ -122,13 +126,34 @@
         </div>
     </div>
 
-    <!-- AI 調整建議彈窗 (隱藏) -->
-    <div id="ai-modal" class="hidden fixed inset-0 z-50 ai-modal flex items-center justify-center p-4">
+    <!-- API 設定彈窗 -->
+    <div id="settings-modal" class="hidden fixed inset-0 z-50 custom-modal flex items-center justify-center p-4">
+        <div class="bg-white rounded-[2rem] shadow-2xl max-w-md w-full p-8 fade-in">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-slate-800">API 安全設定</h3>
+                <button onclick="closeSettings()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x"></i></button>
+            </div>
+            <p class="text-sm text-slate-500 mb-6">為了保護隱私，請填寫您的 Google AI API Key。此資訊僅儲存在本瀏覽器中，不會上傳到雲端。</p>
+            <div class="mb-6">
+                <label class="block text-sm font-bold text-slate-700 mb-2">Google AI API Key</label>
+                <div class="relative">
+                    <input type="password" id="api-key-input" placeholder="貼上您的 API Key" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all outline-none">
+                </div>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="saveApiKey()" class="flex-1 py-3 bg-purple-600 text-white rounded-xl font-bold shadow-lg shadow-purple-100 hover:bg-purple-700 transition-all">儲存設定</button>
+                <button onclick="clearApiKey()" class="py-3 px-6 bg-slate-100 text-slate-500 rounded-xl font-bold hover:bg-slate-200 transition-all">清除</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI 調整建議彈窗 -->
+    <div id="ai-modal" class="hidden fixed inset-0 z-50 custom-modal flex items-center justify-center p-4">
         <div class="bg-white rounded-[2.5rem] shadow-2xl max-w-4xl w-full p-8 fade-in">
             <div class="flex items-center justify-between mb-6">
                 <div class="flex items-center gap-3">
                     <div class="p-2 bg-purple-100 rounded-xl text-purple-600">
-                        <i data-lucide="magic-wand"></i>
+                        <i data-lucide="sparkles" class="w-5 h-5"></i>
                     </div>
                     <h3 class="text-2xl font-bold text-slate-800">老師幫你調整好了！你比較喜歡哪一個？</h3>
                 </div>
@@ -138,189 +163,239 @@
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                <!-- 版本一 -->
                 <div class="flex flex-col border-2 border-indigo-50 bg-indigo-50/20 rounded-3xl p-6 hover:border-indigo-300 transition-all group">
                     <span class="text-indigo-600 font-bold text-sm mb-2 block">版本一：溫馨抒情風</span>
                     <div id="ai-v1" class="text-slate-700 font-serif leading-relaxed mb-6 h-48 overflow-y-auto pr-2">正在處理中...</div>
-                    <button onclick="applyAI('v1')" class="mt-auto py-3 bg-indigo-600 text-white rounded-xl font-bold shadow-lg shadow-indigo-100 hover:bg-indigo-700 active:scale-95 transition-all">
-                        選擇這個版本
-                    </button>
+                    <button onclick="applyAI('v1')" class="mt-auto py-3 bg-indigo-600 text-white rounded-xl font-bold shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all">選擇這個版本</button>
                 </div>
-                <!-- 版本二 -->
                 <div class="flex flex-col border-2 border-purple-50 bg-purple-50/20 rounded-3xl p-6 hover:border-purple-300 transition-all group">
                     <span class="text-purple-600 font-bold text-sm mb-2 block">版本二：童趣生動風</span>
                     <div id="ai-v2" class="text-slate-700 font-serif leading-relaxed mb-6 h-48 overflow-y-auto pr-2">正在處理中...</div>
-                    <button onclick="applyAI('v2')" class="mt-auto py-3 bg-purple-600 text-white rounded-xl font-bold shadow-lg shadow-purple-100 hover:bg-purple-700 active:scale-95 transition-all">
-                        選擇這個版本
-                    </button>
+                    <button onclick="applyAI('v2')" class="mt-auto py-3 bg-purple-600 text-white rounded-xl font-bold shadow-lg shadow-purple-100 hover:bg-purple-700 transition-all">選擇這個版本</button>
                 </div>
             </div>
-            <p class="text-center text-slate-400 text-xs italic">調整內容僅供參考，你可以點選後再繼續修改喔！</p>
         </div>
     </div>
 
     <script>
-        const apiKey = ""; // 如果在 GitHub 上使用，請在此處填入您的 Google API Key
-        
+        // --- 狀態管理 ---
+        let currentTopic = 'timemachine';
+        let currentStep = 0;
+        let selections = { q1: '', q2: '', q3: '', q4: '' };
+        let currentAIRustResults = { v1: '', v2: '' };
+        let isRecording = false;
+        let isRefining = false;
+        let recognition = null;
+        let textBeforeCurrentRecording = '';
+
+        // --- API Key 管理 (安全機制) ---
+        function getStoredApiKey() {
+            return localStorage.getItem('google_ai_api_key') || '';
+        }
+
+        function openSettings() {
+            document.getElementById('api-key-input').value = getStoredApiKey();
+            document.getElementById('settings-modal').classList.remove('hidden');
+        }
+
+        function closeSettings() {
+            document.getElementById('settings-modal').classList.add('hidden');
+        }
+
+        function saveApiKey() {
+            const key = document.getElementById('api-key-input').value.trim();
+            if (key) {
+                localStorage.setItem('google_ai_api_key', key);
+                alert("金鑰儲存成功！現在可以開始使用 AI 調整功能了。");
+                closeSettings();
+            } else {
+                alert("請輸入正確的金鑰。");
+            }
+        }
+
+        function clearApiKey() {
+            localStorage.removeItem('google_ai_api_key');
+            document.getElementById('api-key-input').value = '';
+            alert("金鑰已清除。");
+        }
+
+        // --- 題目路徑資料庫 ---
         const topicPaths = {
             timemachine: {
                 name: "如果我有一臺時光機",
                 themeColor: "purple",
                 steps: [
-                    {
-                        title: "第一步：你想去哪一個時間點？",
-                        key: "q1",
-                        items: [
-                            { id: "回到恐龍時代", label: "恐龍時代", icon: "🦖", desc: "親眼看看巨大的霸王龍" },
-                            { id: "去到未來世界", label: "未來世界", icon: "🚀", desc: "看看以後的房子是不是會飛" },
-                            { id: "回到小時候", label: "我的小時候", icon: "👶", desc: "看看自己剛出生的可愛模樣" },
-                            { id: "回到犯錯的那一天", label: "修正過去", icon: "⏪", desc: "回到忘記帶東西或吵架的那天" },
-                            { id: "回到古代當大俠", label: "古代武俠", icon: "⚔️", desc: "去古代學習神奇的武功" },
-                            { id: "去外星文明看外星人", label: "外星星球", icon: "👽", desc: "看看外星人的高科技生活" }
-                        ]
-                    },
-                    {
-                        title: "第二步：為什麼想去那個時候？",
-                        key: "q2",
-                        items: [
-                            { id: "感到好奇", label: "滿足好奇心", icon: "🤔", desc: "世界有好多我不知道的秘密" },
-                            { id: "彌補遺憾", label: "改寫錯誤", icon: "🩹", desc: "想把做錯的事情重新做對" },
-                            { id: "非常想念某人", label: "想見見某人", icon: "🫂", desc: "想再見到已經不在身邊的人" },
-                            { id: "尋找消失的寶藏", label: "尋找寶藏", icon: "💎", desc: "發掘埋藏在地下的古代秘密" },
-                            { id: "了解歷史的真相", label: "歷史真相", icon: "📜", desc: "親身體驗書本上記載的事情" },
-                            { id: "單純愛冒險", label: "想要冒險", icon: "🗺️", desc: "想體驗不一樣的生活樂趣" }
-                        ]
-                    },
-                    {
-                        title: "第三步：在那裡你想做什麼事？",
-                        key: "q3",
-                        items: [
-                            { id: "拍下珍貴照片", label: "紀錄瞬間", icon: "📸", desc: "把最難得的畫面拍下來留念" },
-                            { id: "提醒過去的我", label: "提點自己", icon: "📢", desc: "告訴過去的我要更努力、更勇敢" },
-                            { id: "送出一份禮物", label: "傳遞溫暖", icon: "🎁", desc: "給過去或未來的親人一個驚喜" },
-                            { id: "阻止爭吵發生", label: "守護和平", icon: "🤝", desc: "主動道歉讓大家重新和好" },
-                            { id: "帶回未來的科技", label: "帶回新科技", icon: "💻", desc: "用未來的智慧解決現在的問題" },
-                            { id: "阻止自然災害", label: "拯救地球", icon: "🌪️", desc: "在災害發生前預先發出警告" }
-                        ]
-                    },
-                    {
-                        title: "第四步：回到現在，我可以怎麼做？",
-                        key: "q4",
-                        items: [
-                            { id: "珍惜當下時間", label: "珍惜時間", icon: "⌛", desc: "不浪費每一分每一秒" },
-                            { id: "對身邊人更好", label: "愛身邊的人", icon: "💖", desc: "現在就去擁抱爸爸媽媽" },
-                            { id: "記錄美好生活", label: "寫下日記", icon: "📓", desc: "讓現在的每一天都值得回憶" },
-                            { id: "認真規劃時間", label: "規劃未來", icon: "📅", desc: "把每一天都安排得充實有意義" },
-                            { id: "學習歷史知識", label: "多讀歷史", icon: "📖", desc: "從歷史中學習人生的道理" },
-                            { id: "勇敢的面對現在", label: "保持勇敢", icon: "💪", desc: "就算沒有時光機也能解決困難" }
-                        ]
-                    }
+                    { title: "第一步：你想去哪一個時間點？", key: "q1", items: [
+                        { id: "回到恐龍時代", label: "恐龍時代", icon: "🦖", desc: "親眼看看巨大的霸王龍" },
+                        { id: "去到未來世界", label: "未來世界", icon: "🚀", desc: "看看以後的房子是不是會飛" },
+                        { id: "回到小時候", label: "我的小時候", icon: "👶", desc: "看看自己剛出生的可愛模樣" },
+                        { id: "回到犯錯的那一天", label: "修正過去", icon: "⏪", desc: "回到忘記帶東西或吵架的那天" },
+                        { id: "回到古代當大俠", label: "古代武俠", icon: "⚔️", desc: "去古代學習神奇的武功" },
+                        { id: "去外星文明看外星人", label: "外星星球", icon: "👽", desc: "看看外星人的高科技生活" }
+                    ]},
+                    { title: "第二步：為什麼想去那個時候？", key: "q2", items: [
+                        { id: "感到好奇", label: "滿足好奇心", icon: "🤔", desc: "世界有好多我不知道的秘密" },
+                        { id: "彌補遺憾", label: "改寫錯誤", icon: "🩹", desc: "想把做錯的事情重新做對" },
+                        { id: "非常想念某人", label: "想見見某人", icon: "🫂", desc: "想再見到已經不在身邊的人" },
+                        { id: "尋找消失的寶藏", label: "尋找寶藏", icon: "💎", desc: "發掘埋藏在地下的古代秘密" },
+                        { id: "了解歷史的真相", label: "歷史真相", icon: "📜", desc: "親身體驗書本上記載的事情" },
+                        { id: "單純愛冒險", label: "想要冒險", icon: "🗺️", desc: "想體驗不一樣的生活樂趣" }
+                    ]},
+                    { title: "第三步：在那裡你想做什麼事？", key: "q3", items: [
+                        { id: "拍下珍貴照片", label: "紀錄瞬間", icon: "📸", desc: "把最難得的畫面拍下來留念" },
+                        { id: "提醒過去的我", label: "提點自己", icon: "📢", desc: "告訴過去的我要更努力、更勇敢" },
+                        { id: "送出一份禮物", label: "傳遞溫暖", icon: "🎁", desc: "給過去或未來的親人一個驚喜" },
+                        { id: "阻止爭吵發生", label: "守護和平", icon: "🤝", desc: "主動道歉讓大家重新和好" },
+                        { id: "帶回未來的科技", label: "帶回新科技", icon: "💻", desc: "用未來的智慧解決現在的問題" },
+                        { id: "阻止自然災害", label: "拯救地球", icon: "🌪️", desc: "在災害發生前預先發出警告" }
+                    ]},
+                    { title: "第四步：回到現在，我可以怎麼做？", key: "q4", items: [
+                        { id: "珍惜當下時間", label: "珍惜時間", icon: "⌛", desc: "不浪費每一分每一秒" },
+                        { id: "對身邊人更好", label: "愛身邊的人", icon: "💖", desc: "現在就去擁抱爸爸媽媽" },
+                        { id: "記錄美好生活", label: "寫下日記", icon: "📓", desc: "讓現在的每一天都值得回憶" },
+                        { id: "認真規劃時間", label: "規劃未來", icon: "📅", desc: "把每一天都安排得充實有意義" },
+                        { id: "學習歷史知識", label: "多讀歷史", icon: "📖", desc: "從歷史中學習人生的道理" },
+                        { id: "勇敢的面對現在", label: "保持勇敢", icon: "💪", desc: "就算沒有時光機也能解決困難" }
+                    ]}
                 ],
-                templates: [
-                    (s) => `如果我有一臺時光機，我最想去的時間點是「${s.q1}」。\n\n我之所以想去那裡，是因為我對那段時光「${s.q2}」。在我的想像中，那是一個非常神奇的地方。\n\n抵達那裡後，我最想做的事情就是「${s.q3}」。對我來說，這不只是好玩，更是為了留下一些美好的回憶。\n\n雖然現實生活中並沒有真正的時光機，但我明白，每一分每一秒過去了就不能重來。所以，從現在開始，我決定要「${s.q4}」。我想，只要能珍惜現在，每一天都可以像冒險一樣精采！`
-                ]
+                templates: [(s) => `如果我有一臺時光機，我最想去的時間點是「${s.q1}」。\n\n我之所以想去那裡，是因為我對那段時光「${s.q2}」。在我的想像中，那是一個非常神奇的地方。\n\n抵達那裡後，我最想做的事情就是「${s.q3}」。對我來說，這不只是好玩，更是為了留下一些美好的回憶。\n\n雖然現實生活中並沒有真正的時光機，但我明白，每一分每一秒過去了就不能重來。所以，從現在開始，我決定要「${s.q4}」。我想，只要能珍惜現在，每一天都可以像冒險一樣精采！`]
             },
             superpower: {
                 name: "我最想擁有的超能力",
                 themeColor: "blue",
                 steps: [
-                    {
-                        title: "第一步：你想擁有哪種力量？",
-                        key: "q1",
-                        items: [
-                            { id: "自由飛翔", label: "自由飛翔", icon: "🕊️", desc: "像鳥兒一樣穿梭在雲端" },
-                            { id: "隱身術", label: "隱身術", icon: "👻", desc: "安靜地觀察，不被發現" },
-                            { id: "動物語言", label: "動物語言", icon: "🐱", desc: "聽懂流浪貓狗的心聲" },
-                            { id: "瞬間移動", label: "瞬間移動", icon: "🚪", desc: "一秒鐘到達想去的地方" },
-                            { id: "變大變小", label: "伸縮能力", icon: "📏", desc: "可以像蟻人一樣自由變幻大小" },
-                            { id: "過目不忘", label: "超級大腦", icon: "🧠", desc: "讀過的書一輩子都不會忘記" }
-                        ]
-                    },
-                    {
-                        title: "第二步：為什麼想要這個能力？",
-                        key: "q2",
-                        items: [
-                            { id: "不再遲到", label: "不再遲到", icon: "⏰", desc: "解決每天趕時間的煩惱" },
-                            { id: "想幫助寵物", label: "幫助寵物", icon: "🐶", desc: "想知道牠們為什麼不開心" },
-                            { id: "減輕負擔", label: "減輕負擔", icon: "🎒", desc: "讓沉重的書包變輕盈" },
-                            { id: "守護地球環境", label: "守護地球", icon: "🌱", desc: "想用力量讓世界環境變更好" },
-                            { id: "解決懶惰問題", label: "提高效率", icon: "⚡", desc: "想把手邊的事情做得又快又好" },
-                            { id: "探索秘密基地", label: "探索秘境", icon: "島嶼", desc: "去沒人去過的遠方冒險" }
-                        ]
-                    },
-                    {
-                        title: "第三步：你想用它做什麼好事？",
-                        key: "q3",
-                        items: [
-                            { id: "拯救受困者", label: "拯救困難", icon: "🚑", desc: "在危急時刻勇敢保護大家" },
-                            { id: "清理垃圾", label: "清理地球", icon: "♻️", desc: "讓森林和海洋變漂亮" },
-                            { id: "陪伴孤單老人", label: "溫暖陪伴", icon: "👴", desc: "讓孤單的人感受到快樂" },
-                            { id: "幫人找回失物", label: "尋找失物", icon: "🔍", desc: "幫同學找回弄丟的寶貝" },
-                            { id: "修復壞掉的物品", label: "修復大師", icon: "🛠️", desc: "讓大家心愛的東西都能恢復原狀" },
-                            { id: "荒地變森林", label: "綠色魔法", icon: "🌲", desc: "用能力在沙漠種出滿滿的樹木" }
-                        ]
-                    },
-                    {
-                        title: "第四步：現在的我如何努力？",
-                        key: "q4",
-                        items: [
-                            { id: "鍛鍊強壯體魄", label: "鍛鍊身體", icon: "🏃", desc: "讓自己變得健康有力" },
-                            { id: "充實大腦知識", label: "充實知識", icon: "📚", desc: "讀書學習，用智慧解決難題" },
-                            { id: "學習助人為快樂", label: "熱心助人", icon: "❤️", desc: "就算沒法力也能愛人" },
-                            { id: "認真做好每件事", label: "認真學習", icon: "✍️", desc: "練習專注，把每一件事都做好" },
-                            { id: "練習勇敢表達", label: "練習表達", icon: "🗣️", desc: "把心裡的好想法勇敢說出來" },
-                            { id: "發揮自己的特長", label: "發揮所長", icon: "🌟", desc: "找出最厲害的地方並好好發揮" }
-                        ]
-                    }
+                    { title: "第一步：你想擁有哪種力量？", key: "q1", items: [
+                        { id: "自由飛翔", label: "自由飛翔", icon: "🕊️", desc: "像鳥兒一樣穿梭在雲端" },
+                        { id: "隱身術", label: "隱身術", icon: "👻", desc: "安靜地觀察，不被發現" },
+                        { id: "動物語言", label: "動物語言", icon: "🐱", desc: "聽懂流浪貓狗的心聲" },
+                        { id: "瞬間移動", label: "瞬間移動", icon: "🚪", desc: "一秒鐘到達想去的地方" },
+                        { id: "變大變小", label: "伸縮能力", icon: "📏", desc: "可以像蟻人一樣自由變幻大小" },
+                        { id: "過目不忘", label: "超級大腦", icon: "🧠", desc: "讀過的書一輩子都不會忘記" }
+                    ]},
+                    { title: "第二步：為什麼想要這個能力？", key: "q2", items: [
+                        { id: "不再遲到", label: "不再遲到", icon: "⏰", desc: "解決每天趕時間的煩惱" },
+                        { id: "想幫助寵物", label: "幫助寵物", icon: "🐶", desc: "想知道牠們為什麼不開心" },
+                        { id: "減輕負擔", label: "減輕負擔", icon: "🎒", desc: "讓沉重的書包變輕盈" },
+                        { id: "守護地球環境", label: "守護地球", icon: "🌱", desc: "想用力量讓世界環境變更好" },
+                        { id: "解決懶惰問題", label: "提高效率", icon: "⚡", desc: "想把手邊的事情做得又快又好" },
+                        { id: "探索秘密基地", label: "探索秘境", icon: "🏝️", desc: "去沒人去過的遠方冒險" }
+                    ]},
+                    { title: "第三步：你想用它做什麼好事？", key: "q3", items: [
+                        { id: "拯救受困者", label: "拯救困難", icon: "🚑", desc: "在危急時刻勇敢保護大家" },
+                        { id: "清理垃圾", label: "清理地球", icon: "♻️", desc: "讓森林和海洋變漂亮" },
+                        { id: "陪伴孤單老人", label: "溫暖陪伴", icon: "👴", desc: "讓孤單的人感受到快樂" },
+                        { id: "幫人找回失物", label: "尋找失物", icon: "🔍", desc: "幫同學找回弄丟的寶貝" },
+                        { id: "修復壞掉的物品", label: "修復大師", icon: "🛠️", desc: "讓大家心愛的東西都能恢復原狀" },
+                        { id: "荒地變森林", label: "綠色魔法", icon: "🌲", desc: "用能力在沙漠種出滿滿的樹木" }
+                    ]},
+                    { title: "第四步：現在的我如何努力？", key: "q4", items: [
+                        { id: "鍛鍊強壯體魄", label: "鍛鍊身體", icon: "🏃", desc: "讓自己變得健康有力" },
+                        { id: "充實大腦知識", label: "充實知識", icon: "📚", desc: "讀書學習，用智慧解決難題" },
+                        { id: "學習助人為快樂", label: "熱心助人", icon: "❤️", desc: "就算沒法力也能愛人" },
+                        { id: "認真做好每件事", label: "認真學習", icon: "✍️", desc: "練習專注，把每一件事都做好" },
+                        { id: "練習勇敢表達", label: "練習表達", icon: "🗣️", desc: "把心裡的好想法勇敢說出來" },
+                        { id: "發揮自己的特長", label: "發揮所長", icon: "🌟", desc: "找出最厲害的地方並好好發揮" }
+                    ]}
                 ],
-                templates: [
-                    (s) => `我最想擁有的超能力是「${s.q1}」。\n\n如果我擁有這個能力，那該有多好！因為在生活中，我常常覺得「${s.q2}」這件事讓我很困擾，如果有超能力，我就可以輕鬆解決問題。\n\n我不僅想讓自己方便，更想用這份力量去幫助別人。例如，我想嘗試「${s.q3}」，看見別人臉上的笑容，我也會覺得非常有成就感。\n\n雖然我現在還沒有法力，但我相信，只要我願意「${s.q4}」，我也能成為一個優秀的人。我想，一顆願意助人的心，就是世界上最強大的超能力！`
-                ]
+                templates: [(s) => `我最想擁有的超能力是「${s.q1}」。\n\n如果我擁有這個能力，那該有多好！因為在生活中，我常常覺得「${s.q2}」這件事讓我很困擾，如果有超能力，我就可以輕鬆解決問題。\n\n我不僅想讓自己方便，更想用這份力量去幫助別人。例如，我想嘗試「${s.q3}」，看見別人臉上的笑容，我也會覺得非常有成就感。\n\n雖然我現在還沒有法力，但我相信，只要我願意「${s.q4}」，我也能成為一個優秀的人。我想，一顆願意助人的心，就是世界上最強大的超能力！`]
             }
         };
 
-        let currentTopic = 'timemachine';
-        let currentStep = 0;
-        let selections = { q1: '', q2: '', q3: '', q4: '' };
-        let isRecording = false;
-        let isRefining = false;
-        let recognition = null;
-        let textBeforeCurrentRecording = ''; 
-        let currentAIRustResults = { v1: '', v2: '' };
-
-        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            recognition = new SpeechRecognition();
+        // --- 功能邏輯 ---
+        if ('webkitSpeechRecognition' in window) {
+            recognition = new webkitSpeechRecognition();
             recognition.continuous = true;
             recognition.interimResults = true;
             recognition.lang = 'zh-TW';
-
-            recognition.onresult = (event) => {
-                let interimTranscript = '';
-                let finalTranscript = '';
-                for (let i = event.resultIndex; i < event.results.length; ++i) {
-                    if (event.results[i].isFinal) {
-                        finalTranscript += event.results[i][0].transcript;
-                    } else {
-                        interimTranscript += event.results[i][0].transcript;
-                    }
-                }
-                const myOutput = document.getElementById('my-speech-output');
-                if (myOutput) {
-                    myOutput.value = textBeforeCurrentRecording + (finalTranscript || interimTranscript);
-                }
-            };
-
-            recognition.onerror = (event) => {
-                console.error("語音識別錯誤", event.error);
-                stopRecording();
+            recognition.onresult = (e) => {
+                let text = Array.from(e.results).slice(e.resultIndex).map(r => r[0].transcript).join('');
+                document.getElementById('my-speech-output').value = textBeforeCurrentRecording + text;
             };
         }
 
-        function initIcons() { lucide.createIcons(); }
+        function toggleRecording() {
+            if (isRecording) {
+                recognition.stop();
+                isRecording = false;
+                document.getElementById('mic-btn').classList.replace('bg-red-500', 'bg-purple-600');
+                document.getElementById('recording-status').classList.add('hidden');
+            } else {
+                textBeforeCurrentRecording = document.getElementById('my-speech-output').value;
+                recognition.start();
+                isRecording = true;
+                document.getElementById('mic-btn').classList.replace('bg-purple-600', 'bg-red-500');
+                document.getElementById('recording-status').classList.remove('hidden');
+            }
+        }
 
+        async function refineText() {
+            const currentKey = getStoredApiKey();
+            if (!currentKey) {
+                alert("尚未設定 API Key！請點選右上方「齒輪按鈕」進行設定。");
+                openSettings();
+                return;
+            }
+
+            const input = document.getElementById('my-speech-output').value.trim();
+            if (!input) return;
+
+            setRefiningState(true);
+            try {
+                const prompt = `你是一位親切的國小寫作老師。學生的口說內容邏輯不通或是有贅字。請根據核心內容（題目：${topicPaths[currentTopic].name}），幫他調整。
+                請生成 JSON 格式：{"v1": "溫馨感性風格的文章", "v2": "童趣生動且簡單易讀的文章"}。
+                學生的內容是：${input}`;
+
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${currentKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        contents: [{ parts: [{ text: prompt }] }], 
+                        generationConfig: { 
+                            responseMimeType: "application/json",
+                            responseSchema: {
+                                type: "OBJECT",
+                                properties: {
+                                    v1: { type: "STRING" },
+                                    v2: { type: "STRING" }
+                                }
+                            }
+                        } 
+                    })
+                });
+
+                const data = await response.json();
+                const json = JSON.parse(data.candidates[0].content.parts[0].text);
+                currentAIRustResults = json;
+                document.getElementById('ai-v1').innerText = json.v1;
+                document.getElementById('ai-v2').innerText = json.v2;
+                document.getElementById('ai-modal').classList.remove('hidden');
+            } catch (err) {
+                alert("調整失敗。請檢查 API Key 是否正確且具有 Gemini API 權限。");
+            } finally {
+                setRefiningState(false);
+            }
+        }
+
+        function setRefiningState(loading) {
+            const btn = document.getElementById('refine-btn');
+            if (btn) {
+                btn.disabled = loading;
+                document.getElementById('refine-text').innerText = loading ? "調整中..." : "我來幫你調整";
+                document.getElementById('refine-icon').classList.toggle('loading-spin', loading);
+            }
+        }
+
+        function applyAI(v) {
+            document.getElementById('my-speech-output').value = currentAIRustResults[v];
+            closeAI();
+        }
+
+        function closeAI() { document.getElementById('ai-modal').classList.add('hidden'); }
+
+        // --- 修正後的 UI 控制 ---
         function renderTopicSelector() {
             const selector = document.getElementById('topic-selector');
+            if (!selector) return;
             selector.innerHTML = Object.keys(topicPaths).map(key => `
                 <button onclick="switchTopic('${key}')" class="px-4 py-2 rounded-xl text-sm font-bold transition-all ${currentTopic === key ? 'bg-purple-600 text-white shadow-md' : 'text-slate-400 hover:bg-slate-50'}">
                     ${topicPaths[key].name}
@@ -328,324 +403,39 @@
             `).join('');
         }
 
-        function switchTopic(key) {
-            currentTopic = key;
-            resetApp();
+        function renderProgress() {
+            const dots = document.getElementById('progress-dots');
+            const bar = document.getElementById('progress-bar');
+            if (!dots || !bar) return;
+            let html = '<div class="absolute top-1/2 left-0 right-0 h-0.5 bg-slate-200 -translate-y-1/2 -z-10 mx-4"></div>';
+            for (let i = 0; i <= 4; i++) {
+                const cls = currentStep === i ? 'border-purple-600 text-purple-600 scale-110 shadow-lg' : (currentStep > i ? 'bg-green-500 border-green-500 text-white' : 'bg-white border-slate-300 text-slate-400');
+                html += `<div class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold bg-white transition-all border-2 ${cls}">${currentStep > i ? '<i data-lucide="check" class="w-5 h-5"></i>' : i + 1}</div>`;
+            }
+            dots.innerHTML = html;
+            bar.style.width = (currentStep / 4 * 100) + '%';
+            lucide.createIcons();
         }
 
         function render() {
             renderTopicSelector();
             renderProgress();
-            const mainCard = document.getElementById('main-card');
+            const card = document.getElementById('main-card');
             const path = topicPaths[currentTopic];
-            
             if (currentStep < 4) {
-                document.getElementById('progress-container').classList.remove('hidden');
-                const stepData = path.steps[currentStep];
-                mainCard.innerHTML = `
-                    <div class="fade-in flex-grow max-w-4xl mx-auto w-full">
-                        <div class="flex items-center gap-3 mb-8">
-                            <div class="p-3 bg-purple-100 rounded-2xl text-purple-600">
-                                <i data-lucide="compass" class="w-6 h-6"></i>
-                            </div>
-                            <h2 class="text-2xl font-bold text-slate-800 tracking-tight">${stepData.title}</h2>
-                        </div>
-                        
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                            ${stepData.items.map(item => `
-                                <button onclick="selectOption('${item.id}')" 
-                                    class="group p-6 rounded-3xl border-2 text-left transition-all hover:border-purple-400 hover:shadow-md active:scale-95 
-                                    ${selections[stepData.key] === item.id ? 'border-purple-600 bg-purple-50 ring-4 ring-purple-50 shadow-sm' : 'border-slate-100 bg-white hover:bg-slate-50'}">
-                                    <div class="flex items-center gap-4">
-                                        <div class="text-4xl group-hover:scale-110 transition-transform duration-300">${item.icon}</div>
-                                        <div>
-                                            <div class="font-bold text-lg text-slate-800 mb-1">${item.label}</div>
-                                            <div class="text-xs text-slate-500 leading-snug">${item.desc}</div>
-                                        </div>
-                                    </div>
-                                </button>
-                            `).join('')}
-                        </div>
-
-                        <div class="mt-12 flex justify-start">
-                            <button onclick="prevStep()" ${currentStep === 0 ? 'disabled' : ''} 
-                                class="flex items-center gap-2 px-6 py-2 rounded-xl font-bold transition-all ${currentStep === 0 ? 'text-slate-200 cursor-not-allowed opacity-50' : 'text-slate-500 hover:bg-slate-100'}">
-                                <i data-lucide="arrow-left" class="w-4 h-4"></i> 返回上一關
-                            </button>
-                        </div>
-                    </div>
-                `;
+                const step = path.steps[currentStep];
+                card.innerHTML = `<div class="fade-in"><div class="flex items-center gap-3 mb-8"><div class="p-3 bg-purple-100 rounded-2xl text-purple-600"><i data-lucide="compass"></i></div><h2 class="text-2xl font-bold">${step.title}</h2></div><div class="grid grid-cols-1 md:grid-cols-3 gap-4">${step.items.map(item => `<button onclick="selectOption('${item.id}')" class="p-6 rounded-3xl border-2 text-left transition-all hover:border-purple-400 ${selections[step.key] === item.id ? 'border-purple-600 bg-purple-50 ring-4 ring-purple-50' : 'border-slate-100 bg-white'}"><div class="text-4xl mb-2">${item.icon}</div><div class="font-bold text-lg">${item.label}</div><div class="text-xs text-slate-500">${item.desc}</div></button>`).join('')}</div></div>`;
             } else {
                 document.getElementById('progress-container').classList.add('hidden');
-                const essayTemplate = path.templates[0](selections);
-                
-                mainCard.innerHTML = `
-                    <div class="fade-in flex flex-col h-full">
-                        <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4 border-b border-slate-50 pb-4 no-print">
-                            <div class="flex items-center gap-3">
-                                <div class="p-3 bg-indigo-100 rounded-2xl text-indigo-600 shadow-sm">
-                                    <i data-lucide="award" class="w-6 h-6"></i>
-                                </div>
-                                <div>
-                                    <h2 class="text-2xl font-bold text-slate-800 tracking-tight">恭喜！寫作藍圖已完成</h2>
-                                    <p class="text-slate-400 text-sm">點選左側參考，並在右側練習口說或打字吧！</p>
-                                </div>
-                            </div>
-                            <div class="flex gap-2">
-                                <button onclick="printResult()" class="flex items-center gap-2 p-2 px-4 bg-green-600 text-white hover:bg-green-700 rounded-xl transition-all font-bold shadow-md shadow-green-100">
-                                    <i data-lucide="printer" class="w-4 h-4"></i> 列印文章
-                                </button>
-                                <button onclick="resetApp()" class="flex items-center gap-2 p-2 px-4 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-xl transition-all font-bold group">
-                                    <i data-lucide="refresh-cw" class="w-4 h-4 group-hover:rotate-180 transition-transform duration-500"></i> 重新開始
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 flex-grow">
-                            <!-- 左側：建議範本 -->
-                            <div class="flex flex-col no-print">
-                                <div class="flex items-center mb-3 px-2">
-                                    <span class="text-indigo-600 font-bold flex items-center gap-2">
-                                        <i data-lucide="file-text" class="w-4 h-4"></i> 建議範本（供參考）
-                                    </span>
-                                </div>
-                                <div class="bg-indigo-50/50 border-2 border-indigo-100 rounded-[2rem] p-6 shadow-inner relative overflow-hidden flex-grow">
-                                    <pre id="essay-content" class="whitespace-pre-wrap font-serif text-lg leading-relaxed text-slate-700 relative z-10">${essayTemplate}</pre>
-                                </div>
-                                <div class="mt-4">
-                                    <button onclick="copyText()" class="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-2xl font-bold text-indigo-600 bg-white border-2 border-indigo-100 hover:bg-indigo-50 transition-all">
-                                        <i data-lucide="clipboard-copy" class="w-5 h-5"></i> 複製範本文字
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- 右側：我的口說練習區 -->
-                            <div class="flex flex-col no-print">
-                                <div class="flex items-center justify-between mb-3 px-2">
-                                    <span class="text-purple-600 font-bold flex items-center gap-2">
-                                        <i data-lucide="user" class="w-4 h-4"></i> 我的內容（在這裡說話或修改）
-                                    </span>
-                                    <div id="recording-status" class="hidden text-xs text-red-500 font-bold flex items-center gap-1 animate-pulse">
-                                        <span class="w-2 h-2 bg-red-500 rounded-full"></span> 錄音中...
-                                    </div>
-                                </div>
-                                <div class="bg-purple-50/50 border-2 border-purple-100 rounded-[2rem] p-6 shadow-inner flex flex-col flex-grow relative">
-                                    <textarea id="my-speech-output" placeholder="點選下方麥克風，對著範本說說看你的作文吧！" 
-                                        class="w-full h-full bg-transparent border-none focus:ring-0 text-lg font-serif leading-relaxed text-slate-700 resize-none"></textarea>
-                                    
-                                    <div class="absolute bottom-4 right-4 flex gap-2">
-                                        <button id="refine-btn" onclick="refineText()" 
-                                            class="flex items-center gap-2 px-4 py-3 bg-white border-2 border-purple-200 text-purple-600 rounded-2xl font-bold shadow-md hover:bg-purple-50 transition-all active:scale-95 disabled:opacity-50">
-                                            <i data-lucide="wand-2" id="refine-icon"></i>
-                                            <span id="refine-text">我來幫你調整</span>
-                                        </button>
-                                        <button id="mic-btn" onclick="toggleRecording()" 
-                                            class="w-16 h-16 bg-purple-600 text-white rounded-full shadow-lg shadow-purple-200 flex items-center justify-center hover:bg-purple-700 transition-all active:scale-95">
-                                            <i data-lucide="mic" id="mic-icon" class="w-8 h-8"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
+                card.innerHTML = `<div class="fade-in flex flex-col h-full"><div class="flex justify-between mb-8 pb-4 border-b"><div><h2 class="text-2xl font-bold">作文藍圖已完成</h2><p class="text-slate-400">點選右側麥克風開始錄音或修改。</p></div><div class="flex gap-2"><button onclick="printResult()" class="px-4 py-2 bg-green-600 text-white rounded-xl font-bold shadow-md"><i data-lucide="printer"></i> 列印</button><button onclick="resetApp()" class="px-4 py-2 text-slate-400 font-bold">重新開始</button></div></div><div class="grid grid-cols-1 lg:grid-cols-2 gap-8 flex-grow"><div class="bg-indigo-50 border-2 border-indigo-100 rounded-[2rem] p-6"><pre class="whitespace-pre-wrap font-serif text-lg text-slate-700">${path.templates[0](selections)}</pre></div><div class="relative bg-purple-50 border-2 border-purple-100 rounded-[2rem] p-6 flex flex-col"><textarea id="my-speech-output" placeholder="點選下方麥克風說話..." class="w-full h-full bg-transparent border-none focus:ring-0 text-lg font-serif"></textarea><div id="recording-status" class="hidden absolute top-4 right-4 text-xs text-red-500 font-bold animate-pulse">錄音中...</div><div class="absolute bottom-4 right-4 flex gap-2"><button id="refine-btn" onclick="refineText()" class="px-4 py-3 bg-white border-2 border-purple-200 text-purple-600 rounded-2xl font-bold flex items-center gap-2"><i data-lucide="wand-2" id="refine-icon"></i><span id="refine-text">我來幫你調整</span></button><button id="mic-btn" onclick="toggleRecording()" class="w-16 h-16 bg-purple-600 text-white rounded-full flex items-center justify-center shadow-lg"><i data-lucide="mic"></i></button></div></div></div></div>`;
             }
-            initIcons();
+            lucide.createIcons();
         }
 
-        function renderProgress() {
-            const progressDots = document.getElementById('progress-dots');
-            const progressBar = document.getElementById('progress-bar');
-            let html = '<div class="absolute top-1/2 left-0 right-0 h-0.5 bg-slate-200 -translate-y-1/2 -z-10 mx-4"></div>';
-            for (let i = 0; i <= 4; i++) {
-                const isActive = currentStep === i;
-                const isCompleted = currentStep > i;
-                const colorClass = isActive ? 'bg-white border-purple-600 text-purple-600 scale-110 shadow-lg' : 
-                                   isCompleted ? 'bg-green-500 border-green-500 text-white' : 'bg-white border-slate-300 text-slate-400';
-                html += `<div class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all border-2 ${colorClass}">
-                    ${isCompleted ? '<i data-lucide="check" class="w-5 h-5"></i>' : i + 1}
-                </div>`;
-            }
-            progressDots.innerHTML = html;
-            progressBar.style.width = `${(currentStep / 4) * 100}%`;
-        }
-
-        function selectOption(val) {
-            const path = topicPaths[currentTopic];
-            selections[path.steps[currentStep].key] = val;
-            if (currentStep < 4) {
-                setTimeout(() => { currentStep++; render(); }, 300);
-            }
-        }
-
-        function prevStep() { if (currentStep > 0) { currentStep--; render(); } }
-
-        function toggleRecording() {
-            if (!recognition) {
-                alert("抱歉，您的瀏覽器不支援語音識別功能。建議使用 Chrome 瀏覽器。");
-                return;
-            }
-            if (isRecording) stopRecording(); else startRecording();
-        }
-
-        function startRecording() {
-            isRecording = true;
-            const myOutput = document.getElementById('my-speech-output');
-            textBeforeCurrentRecording = myOutput.value;
-            recognition.start();
-            const btn = document.getElementById('mic-btn');
-            btn.classList.add('bg-red-500', 'recording-pulse');
-            btn.classList.remove('bg-purple-600');
-            document.getElementById('recording-status').classList.remove('hidden');
-            document.getElementById('mic-icon').setAttribute('data-lucide', 'square');
-            initIcons();
-        }
-
-        function stopRecording() {
-            isRecording = false;
-            recognition.stop();
-            const micBtn = document.getElementById('mic-btn');
-            if (micBtn) {
-                micBtn.classList.remove('bg-red-500', 'recording-pulse');
-                micBtn.classList.add('bg-purple-600');
-                document.getElementById('recording-status').classList.add('hidden');
-                document.getElementById('mic-icon').setAttribute('data-lucide', 'mic');
-                initIcons();
-            }
-        }
-
-        // --- AI 調整邏輯 ---
-        async function refineText() {
-            const outputArea = document.getElementById('my-speech-output');
-            const studentText = outputArea.value.trim();
-            
-            if (!studentText) {
-                alert("請先錄音或打字，老師才能幫你調整喔！");
-                return;
-            }
-
-            setRefiningState(true);
-            try {
-                // 要求生成兩個版本
-                const prompt = `你是一位充滿愛心的國小寫作指導老師。學生的作文草稿可能邏輯零碎或語句不通。請針對學生的核心內容（題目：${topicPaths[currentTopic].name}），幫他調整潤飾文意。
-                請生成兩個版本並以 JSON 格式回傳：
-                v1: 溫馨抒情風（文字優美、富有畫面感）
-                v2: 童趣生動風（語句直白、童言童語、好閱讀）
-                
-                學生原本寫的內容是：${studentText}`;
-
-                const response = await callGeminiAPI(prompt, true); // true 表示需要 JSON
-                currentAIRustResults = response;
-                
-                document.getElementById('ai-v1').innerText = response.v1;
-                document.getElementById('ai-v2').innerText = response.v2;
-                document.getElementById('ai-modal').classList.remove('hidden');
-            } catch (error) {
-                console.error(error);
-                alert("AI 調整暫時遇到一點困難。如果你是在 GitHub 上使用，請確認是否有填寫正確的 API Key！");
-            } finally {
-                setRefiningState(false);
-            }
-        }
-
-        async function callGeminiAPI(prompt, isJson = false, retries = 0) {
-            const generationConfig = isJson ? { 
-                responseMimeType: "application/json", 
-                responseSchema: {
-                    type: "OBJECT",
-                    properties: {
-                        v1: { type: "STRING" },
-                        v2: { type: "STRING" }
-                    }
-                } 
-            } : {};
-
-            const payload = {
-                contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: generationConfig
-            };
-
-            try {
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (!response.ok) throw new Error('API Request Failed');
-
-                const data = await response.json();
-                const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-                
-                if (!text) throw new Error('Empty Response');
-                
-                return isJson ? JSON.parse(text) : text;
-            } catch (err) {
-                if (retries < 5) {
-                    const delay = Math.pow(2, retries) * 1000;
-                    await new Promise(res => setTimeout(res, delay));
-                    return callGeminiAPI(prompt, isJson, retries + 1);
-                }
-                throw err;
-            }
-        }
-
-        function closeAI() {
-            document.getElementById('ai-modal').classList.add('hidden');
-        }
-
-        function applyAI(version) {
-            const outputArea = document.getElementById('my-speech-output');
-            outputArea.value = currentAIRustResults[version];
-            closeAI();
-        }
-
-        function setRefiningState(loading) {
-            isRefining = loading;
-            const btn = document.getElementById('refine-btn');
-            const textSpan = document.getElementById('refine-text');
-            const icon = document.getElementById('refine-icon');
-            if (loading) {
-                btn.disabled = true;
-                textSpan.innerText = "正在調整中...";
-                icon.setAttribute('data-lucide', 'loader-2');
-                icon.classList.add('loading-spin');
-            } else {
-                btn.disabled = false;
-                textSpan.innerText = "我來幫你調整";
-                icon.setAttribute('data-lucide', 'wand-2');
-                icon.classList.remove('loading-spin');
-            }
-            initIcons();
-        }
-
-        function copyText() {
-            const essay = document.getElementById('essay-content').innerText;
-            const dummy = document.createElement("textarea");
-            document.body.appendChild(dummy);
-            dummy.value = essay; dummy.select();
-            document.execCommand("copy");
-            document.body.removeChild(dummy);
-            alert("範本內容已複製！");
-        }
-
-        function printResult() {
-            const speechText = document.getElementById('my-speech-output').value;
-            if (!speechText.trim()) {
-                alert("請先完成你的文章內容再列印喔！");
-                return;
-            }
-            const printArea = document.getElementById('print-area');
-            printArea.innerText = speechText;
-            window.print();
-        }
-
-        function resetApp() {
-            if (isRecording) stopRecording();
-            currentStep = 0;
-            selections = { q1: '', q2: '', q3: '', q4: '' };
-            render();
-        }
+        function selectOption(id) { selections[topicPaths[currentTopic].steps[currentStep].key] = id; if (currentStep < 4) currentStep++; render(); }
+        function switchTopic(k) { currentTopic = k; resetApp(); }
+        function resetApp() { currentStep = 0; selections = { q1:'', q2:'', q3:'', q4:'' }; render(); document.getElementById('progress-container').classList.remove('hidden'); }
+        function printResult() { document.getElementById('print-area').innerText = document.getElementById('my-speech-output').value; window.print(); }
 
         window.onload = render;
     </script>
